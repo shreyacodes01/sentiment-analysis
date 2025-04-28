@@ -1,0 +1,102 @@
+In app.py
+
+from flask import Flask, request, render_template, jsonify
+from textblob import TextBlob
+app = Flask(__name__)
+@app.route('/')
+def home():
+return render_template('index.html')
+@app.route('/analyze', methods=['POST'])
+def analyze():
+text = request.form.get('text')
+blob = TextBlob(text)
+sentiment = 'Positive' if blob.sentiment.polarity > 0 else 'Negative' if blob.sentiment.polarity < 0
+else 'Neutral'
+return jsonify({'sentiment': sentiment})
+if __name__ == '__main__':
+app.run(debug=True)
+
+in index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentiment Analysis</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="container">
+<h1>Sentiment Analysis Tool</h1>
+<form id="sentiment-form">
+<textarea id="text" name="text" rows="4" placeholder="Type your statement here..."
+required></textarea>
+<button type="submit">Analyze Sentiment</button>
+</form>
+<div id="result">
+<script>
+document.getElementById('sentiment-form').addEventListener('submit', function(event) {
+event.preventDefault();
+const text = document.getElementById('text').value;
+fetch('/analyze', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/x-www-form-urlencoded'
+},
+body: new URLSearchParams({ text: text })
+})
+.then(response => response.json())
+.then(data => {
+document.getElementById('result').innerText = `Sentiment: ${data.sentiment}`;
+})
+.catch(error => console.error('Error:', error));
+});
+</script>
+</body>
+</html>
+<!-- Result will be displayed here -->
+</div>
+</div>
+
+In styles .css
+
+body {
+font-family: Arial, sans-serif;
+background-color: #f4f4f4;
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+margin: 0;
+}
+.container {
+background: #fff;
+border-radius: 8px;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+padding: 20px;
+width: 100%;
+max-width: 600px;
+text-align: center;
+}
+textarea {
+width: 100%;
+padding: 10px;
+border: 1px solid #ddd;
+border-radius: 4px;
+margin-bottom: 10px;
+}
+button {
+padding: 10px 15px;
+border: none;
+border-radius: 4px;
+background-color: #007bff;
+color: #fff;
+cursor: pointer;
+}
+button:hover {
+background-color: #0056b3;
+}
+#result {
+margin-top: 20px;
+font-size: 1.2em;
+}
